@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #07070a;
+  --color-surface: #101015;
+  --color-surface-raised: #16161d;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-fg: #ececf1;
+  --color-muted: #8d8d99;
+  --color-accent: #22d3ee;
+  --color-accent-strong: #06b6d4;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-fg antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  ::selection {
+    @apply bg-accent/30;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+  }
+}
+
+@layer components {
+  .field {
+    @apply h-9 rounded-xl border border-line bg-black/30 px-3 text-sm text-fg placeholder:text-muted/60 focus:border-accent/50 focus:outline-none;
+  }
+
+  textarea.field {
+    @apply h-auto py-2;
+  }
+
+  .pill,
+  .pill-select {
+    @apply inline-flex h-9 items-center gap-2 rounded-full border border-line bg-white/[0.04] px-3.5 text-xs text-fg transition-colors hover:bg-white/[0.08] focus-visible:outline-accent;
+  }
+
+  .pill-select {
+    @apply cursor-pointer appearance-none pr-7 font-medium;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238d8d99' stroke-width='3'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  .pill-select option {
+    @apply bg-surface-raised text-fg;
+  }
+
+  .pill-active {
+    @apply border-accent/40 bg-accent/10 text-accent;
+  }
+
+  .chip {
+    @apply inline-flex h-7 items-center gap-1 rounded-full border border-line bg-white/[0.04] px-2.5 text-xs font-medium text-fg/80 transition-colors hover:border-accent/40 hover:text-accent disabled:opacity-40;
+  }
+
+  .chip-active {
+    @apply border-accent/50 bg-accent/10 text-accent;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full border border-line bg-white/[0.05] px-2 py-0.5 text-[10px] font-medium text-muted;
+  }
+
+  .icon-button {
+    @apply inline-flex size-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-white/[0.06] hover:text-fg;
+  }
+
+  .menu-item {
+    @apply flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm text-fg/85 transition-colors hover:bg-white/[0.06];
+  }
+
+  .button-primary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-black shadow-lg shadow-accent/20 transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .button-danger {
+    @apply inline-flex h-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 px-6 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition-colors hover:bg-white/[0.05] hover:text-fg;
+  }
+
+  .nav-link-active {
+    @apply bg-accent/10 text-accent hover:bg-accent/10 hover:text-accent;
+  }
+
+  .media-add {
+    @apply relative flex size-14 items-center justify-center rounded-xl border border-dashed border-white/15 text-muted transition-colors hover:border-accent/50 hover:text-accent;
+  }
+
+  .shimmer {
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.05) 50%, transparent 70%) 0 0 / 250% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -250% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}
