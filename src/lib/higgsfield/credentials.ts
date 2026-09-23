@@ -3,37 +3,42 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 
-// Higgsfield credentials are a key ID and secret, sent as
-// `Authorization: Key <id>:<secret>`. They come from the server environment
-// (recommended) or from an httpOnly cookie set via Settings; they are never
-// readable by browser JavaScript.
+// A Higgsfield API key is a single credential string, as shown by "Copy API
+// Key" in the console (the official SDKs call it KEY_ID:KEY_SECRET). It is
+// sent verbatim as `Authorization: Key <api key>`. It comes from the server
+// environment (recommended) or from an httpOnly cookie set via Settings, and
+// is never readable by browser JavaScript.
 
 export const CREDENTIALS_COOKIE = "lumen_hf";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-const CREDENTIALS_PATTERN = /^[^\s:]+:[^\s]+$/;
+const API_KEY_PATTERN = /^\S{8,512}$/;
 
 export interface Credentials {
-  keyId: string;
-  secret: string;
+  apiKey: string;
   source: "env" | "cookie";
 }
 
-export function parseCredentials(value: string | undefined | null): Omit<Credentials, "source"> | null {
-  if (!value || !CREDENTIALS_PATTERN.test(value)) return null;
-  const separator = value.indexOf(":");
-  return { keyId: value.slice(0, separator), secret: value.slice(separator + 1) };
+/** Returns the trimmed key, or null when it cannot be a Higgsfield API key. */
+export function parseApiKey(value: string | undefined | null): string | null {
+  const key = value?.trim();
+  return key && API_KEY_PATTERN.test(key) ? key : null;
 }
 
-function envCredentials(): Credentials | null {
-  const { HF_API_KEY_ID, HF_API_KEY_SECRET, HF_CREDENTIALS } = process.env;
-  const parsed = HF_API_KEY_ID && HF_API_KEY_SECRET
-    ? parseCredentials(`${HF_API_KEY_ID}:${HF_API_KEY_SECRET}`)
-    : parseCredentials(HF_CREDENTIALS);
-  return parsed ? { ...parsed, source: "env" } : null;
+/** Console-style hint, e.g. `793c…767f`; never enough to reconstruct the key. */
+export function keyHint(apiKey: string): string {
+  return `${apiKey.slice(0, 4)}…${apiKey.slice(-4)}`;
+}
+
+function envApiKey(): string | null {
+  const { HF_KEY, HF_CREDENTIALS, HF_API_KEY_ID, HF_API_KEY_SECRET } = process.env;
+  // HF_KEY / HF_CREDENTIALS match the official SDKs; the separate ID and
+  // secret variables are the older documented form.
+  return parseApiKey(HF_KEY) ?? parseApiKey(HF_CREDENTIALS) ??
+    (HF_API_KEY_ID && HF_API_KEY_SECRET ? parseApiKey(`${HF_API_KEY_ID}:${HF_API_KEY_SECRET}`) : null);
 }
 
 // When LUMEN_SESSION_SECRET is set, the cookie is sealed with AES-256-GCM so a
-// copied cookie file does not reveal the Higgsfield secret.
+// copied cookie file does not reveal the API key.
 function sessionKey(): Buffer | null {
   const secret = process.env.LUMEN_SESSION_SECRET;
   return secret ? createHash("sha256").update(secret).digest() : null;
@@ -63,19 +68,19 @@ export function unsealCookieValue(sealed: string): string | null {
 }
 
 export async function getCredentials(): Promise<Credentials | null> {
-  const fromEnv = envCredentials();
-  if (fromEnv) return fromEnv;
+  const fromEnv = envApiKey();
+  if (fromEnv) return { apiKey: fromEnv, source: "env" };
   const cookie = (await cookies()).get(CREDENTIALS_COOKIE)?.value;
-  const parsed = cookie ? parseCredentials(unsealCookieValue(cookie)) : null;
-  return parsed ? { ...parsed, source: "cookie" } : null;
+  const apiKey = cookie ? parseApiKey(unsealCookieValue(cookie)) : null;
+  return apiKey ? { apiKey, source: "cookie" } : null;
 }
 
 export function hasEnvCredentials(): boolean {
-  return envCredentials() !== null;
+  return envApiKey() !== null;
 }
 
-export async function storeCredentials(keyId: string, secret: string, secure: boolean): Promise<void> {
-  (await cookies()).set(CREDENTIALS_COOKIE, sealCookieValue(`${keyId}:${secret}`), {
+export async function storeCredentials(apiKey: string, secure: boolean): Promise<void> {
+  (await cookies()).set(CREDENTIALS_COOKIE, sealCookieValue(apiKey), {
     httpOnly: true,
     secure,
     sameSite: "strict",

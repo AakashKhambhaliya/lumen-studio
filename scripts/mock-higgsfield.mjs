@@ -7,7 +7,7 @@
 //   npm run mock:higgsfield
 //   HIGGSFIELD_API_BASE=http://localhost:4010 npm run dev
 //
-// Any credentials are accepted except a key ID of "invalid".
+// Any API key is accepted except one starting with "invalid".
 
 import { randomUUID } from "node:crypto";
 import http from "node:http";
@@ -33,8 +33,8 @@ async function readBody(request) {
 }
 
 function authorized(request) {
-  const match = /^Key ([^:\s]+):(\S+)$/.exec(request.headers.authorization ?? "");
-  return match !== null && match[1] !== "invalid";
+  const match = /^Key (\S+)$/.exec(request.headers.authorization ?? "");
+  return match !== null && !match[1].startsWith("invalid");
 }
 
 function placeholderImage(prompt, hue) {

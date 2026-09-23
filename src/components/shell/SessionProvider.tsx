@@ -7,7 +7,7 @@ import type { SessionState } from "@/lib/session";
 interface SessionContextValue {
   /** `null` until the first check completes. */
   session: SessionState | null;
-  connect: (keyId: string, secret: string) => Promise<void>;
+  connect: (apiKey: string) => Promise<void>;
   disconnect: () => Promise<void>;
   settingsOpen: boolean;
   openSettings: () => void;
@@ -26,12 +26,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     let active = true;
     api.getSession()
       .then((state) => { if (active) setSession(state); })
-      .catch(() => { if (active) setSession({ connected: false, source: null, keyIdHint: null }); });
+      .catch(() => { if (active) setSession({ connected: false, source: null, keyHint: null }); });
     return () => { active = false; };
   }, []);
 
-  const connect = useCallback(async (keyId: string, secret: string) => {
-    setSession(await api.connect(keyId, secret));
+  const connect = useCallback(async (apiKey: string) => {
+    setSession(await api.connect(apiKey));
   }, []);
 
   const disconnect = useCallback(async () => {
@@ -39,7 +39,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const reportCredentialsProblem = useCallback(() => {
-    setSession((current) => (current?.source === "env" ? current : { connected: false, source: null, keyIdHint: null }));
+    setSession((current) => (current?.source === "env" ? current : { connected: false, source: null, keyHint: null }));
     setSettingsOpen(true);
   }, []);
 

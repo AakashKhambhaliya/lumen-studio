@@ -57,7 +57,7 @@ async function request<T>(credentials: Credentials, path: string, init: { method
     response = await fetch(`${API_BASE}${path}`, {
       method: init.method ?? "GET",
       headers: {
-        Authorization: `Key ${credentials.keyId}:${credentials.secret}`,
+        Authorization: `Key ${credentials.apiKey}`,
         ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
       },
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,

@@ -24,11 +24,11 @@ Every control is generated from the workflow's published JSON schema, so new Hig
 - **Media inputs from the schema.** Start and end frames, reference images/videos/audio, character images and source videos. Upload a file or paste a public URL.
 - **Background jobs.** Requests are polled with backoff (1.5 s, growing to 10 s), keep running while you switch studios, resume after a reload, and can be cancelled while still queued.
 - **History and reuse.** The last 200 results stay in your browser. *Reuse* restores a result's model, prompt, settings and media.
-- **Server-side credentials.** The Higgsfield secret never reaches browser JavaScript (see [Security](#security)).
+- **Server-side credentials.** Your Higgsfield API key never reaches browser JavaScript (see [Security](#security)).
 
 ## Getting started
 
-Requires [Node.js](https://nodejs.org) 20.9 or later and a Higgsfield API key (key ID and secret) from [console.higgsfield.ai](https://console.higgsfield.ai).
+Requires [Node.js](https://nodejs.org) 20.9 or later and a Higgsfield API key: in [console.higgsfield.ai](https://console.higgsfield.ai), create a key and click **Copy API Key**.
 
 ```bash
 git clone https://github.com/AakashKhambhaliya/lumen-studio.git
@@ -37,12 +37,12 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000, click **Connect Higgsfield** and enter your key. The key is verified with Higgsfield before it's saved.
+Open http://localhost:3000, click **Connect Higgsfield** and paste your API key. The key is verified with Higgsfield before it's saved.
 
 To configure the key on the server instead (recommended for shared or deployed instances):
 
 ```bash
-cp .env.example .env.local   # fill in HF_API_KEY_ID and HF_API_KEY_SECRET
+cp .env.example .env.local   # set HF_KEY to your API key
 ```
 
 ### Try it without a Higgsfield key
@@ -54,7 +54,7 @@ npm run mock:higgsfield                                  # terminal 1: http://lo
 HIGGSFIELD_API_BASE=http://localhost:4010 npm run dev    # terminal 2
 ```
 
-Connect with any key ID and secret; the key ID `invalid` is rejected. A prompt containing the word `fail` produces a failed job.
+Connect with any API key of 8 or more characters; keys starting with `invalid` are rejected. A prompt containing the word `fail` produces a failed job.
 
 ## Configuration
 
@@ -62,7 +62,7 @@ All variables are optional. See [`.env.example`](.env.example).
 
 | Variable | Purpose |
 | --- | --- |
-| `HF_API_KEY_ID`, `HF_API_KEY_SECRET` | Higgsfield credentials used for every visitor. `HF_CREDENTIALS=id:secret` also works. |
+| `HF_KEY` | Higgsfield API key used for every visitor (the value from **Copy API Key**). `HF_CREDENTIALS` is an alias, and the older separate `HF_API_KEY_ID` + `HF_API_KEY_SECRET` pair also works. |
 | `LUMEN_SESSION_SECRET` | Encrypts (AES-256-GCM) keys saved from the Settings dialog. Recommended when you don't set server credentials. |
 | `HIGGSFIELD_API_BASE` | API base URL. Defaults to `https://api.higgsfield.ai`. |
 
@@ -75,7 +75,7 @@ npm start      # serves on port 3000
 
 Any host that runs a Node.js server works (a VPS, Docker, Vercel, Railway, Fly.io and so on). The API routes need a Node.js runtime.
 
-> **Protect deployed instances.** With `HF_API_KEY_ID`/`HF_API_KEY_SECRET` set, anyone who can reach the app spends your Higgsfield credits. Put it behind authentication, for example your reverse proxy's, before exposing it.
+> **Protect deployed instances.** With `HF_KEY` set, anyone who can reach the app spends your Higgsfield credits. Put it behind authentication, for example your reverse proxy's, before exposing it.
 
 Serverless platforms may cap request body size (Vercel allows about 4.5 MB), which limits uploads through `/api/uploads`. Uploads up to the app's 100 MB limit need a regular Node server. Pasting a public URL for a media input works everywhere.
 
@@ -126,7 +126,7 @@ The browser sends `{ modelId, prompt, parameters, media }`. The server looks the
 
 ## Security
 
-- Credentials come from the server environment, or from an `httpOnly`, `SameSite=Strict` cookie scoped to `/api` that expires after 30 days. Browser scripts never see the secret.
+- Credentials come from the server environment, or from an `httpOnly`, `SameSite=Strict` cookie scoped to `/api` that expires after 30 days. Browser scripts never see the key.
 - Keys are verified with Higgsfield before they are saved.
 - State-changing API routes reject cross-origin requests.
 - Request IDs, upload content types (Higgsfield's supported list) and upload sizes (100 MB) are validated.

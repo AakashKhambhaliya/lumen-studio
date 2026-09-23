@@ -24,7 +24,7 @@ function submit(body: unknown, origin = "http://localhost:3000") {
 
 beforeEach(() => {
   submitGeneration.mockReset().mockResolvedValue("d7e6c0f3-6699-4f6c-bb45-2ad7fd9158ff");
-  getCredentials.mockReset().mockResolvedValue({ keyId: "id", secret: "secret", source: "env" });
+  getCredentials.mockReset().mockResolvedValue({ apiKey: "793c0000:test-secret-767f", source: "env" });
 });
 
 describe("POST /api/generations", () => {

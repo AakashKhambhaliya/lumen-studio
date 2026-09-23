@@ -3,7 +3,7 @@ import type { GenerationState } from "./higgsfield/status";
 import type { SessionState } from "./session";
 
 // Browser client for this app's /api routes. Higgsfield is only ever called
-// from the server; the browser never sees the API secret.
+// from the server; the browser never sees the API key after connecting.
 
 export class ApiError extends Error {
   constructor(
@@ -53,8 +53,8 @@ async function request<T>(path: string, init: { method?: string; json?: unknown 
 
 export const api = {
   getSession: () => request<SessionState>("/api/session"),
-  connect: (keyId: string, secret: string) =>
-    request<SessionState>("/api/session", { method: "POST", json: { keyId, secret } }),
+  connect: (apiKey: string) =>
+    request<SessionState>("/api/session", { method: "POST", json: { apiKey } }),
   disconnect: () => request<SessionState>("/api/session", { method: "DELETE" }),
 
   submitGeneration: (modelId: string, input: GenerationInput) =>
